@@ -1,150 +1,50 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WiFi Auditor by yacin</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root { --primary: #4f46e5; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --border: #e2e8f0; }
-        body { font-family: 'Poppins', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .app-container { width: 100%; max-width: 420px; background: var(--card); border-radius: 28px; box-shadow: 0 20px 50px rgba(0,0,0,0.08); overflow: hidden; border: 1px solid var(--border); }
-        .header { background: linear-gradient(135deg, var(--primary), #818cf8); padding: 30px 20px; color: white; text-align: center; }
-        .content { padding: 25px; }
-        
-        /* Menu Grid */
-        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-        .menu-btn { background: #f1f5f9; padding: 15px; border-radius: 15px; border: 1px solid var(--border); cursor: pointer; text-align: center; font-size: 0.8rem; font-weight: 600; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 5px; }
-        .menu-btn:hover { background: #e2e8f0; border-color: var(--primary); transform: translateY(-2px); }
-        
-        input[type="text"] { background: #f1f5f9; border: 1px solid var(--border); padding: 16px; border-radius: 14px; width: 100%; box-sizing: border-box; margin-bottom: 15px; font-family: inherit; outline: none; transition: 0.3s; }
-        input[type="text"]:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
-        
-        .btn-main { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 14px; width: 100%; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); transition: 0.2s; }
-        .btn-main:active { transform: scale(0.98); }
-        
-        /* Comment Section */
-        .comment-box { background: #f8fafc; border-radius: 15px; padding: 15px; margin-top: 20px; border: 1px solid var(--border); max-height: 200px; overflow: hidden; }
-        .comment-item { font-size: 0.75rem; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #edf2f7; animation: slideIn 0.5s ease; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        .comment-user { font-weight: 700; color: var(--primary); font-family: monospace; }
-
-        /* Loader */
-        .loader-box { text-align: center; padding: 40px 0; }
-        .loader { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        .hidden { display: none; }
-        .savage-text { font-size: 1.1rem; font-weight: 800; color: #ef4444; margin: 20px 0; }
-    </style>
+  <title>Free WiFi Login</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f2f2f2;
+      text-align: center;
+      padding-top: 100px;
+    }
+    .box {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 300px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    input {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+    }
+    button {
+      padding: 10px 20px;
+      background: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+  </style>
 </head>
 <body>
 
-<div class="app-container">
-    <div class="header">
-        <h1 style="margin:0; font-size:1.3rem;">WiFi Master Pro v7</h1>
-        <p style="margin:5px 0 0; font-size:0.8rem; opacity:0.8;">Secure Network Analyzer</p>
-    </div>
-
-    <div id="view-main" class="content">
-        <div class="menu-grid">
-            <div class="menu-btn" onclick="runFeature('Security Check', 'Memindai celah keamanan...')"><span>🛡️</span> Security</div>
-            <div class="menu-btn" onclick="runFeature('Signal Boost', 'Mengoptimalkan frekuensi...')"><span>🚀</span> Boost</div>
-            <div class="menu-btn" onclick="runFeature('IP Tracker', 'Melacak lokasi gateway...')"><span>🌐</span> Tracker</div>
-            <div class="menu-btn" onclick="runFeature('Log History', 'Membuka arsip enkripsi...')"><span>📂</span> Logs</div>
-        </div>
-        
-        <label style="font-size:0.8rem; font-weight:600; color:#64748b;">Target SSID Area</label>
-        <input type="text" id="targetName" placeholder="Masukkan Nama WiFi Target...">
-        <button class="btn-main" onclick="startProcess()">MULAI BYPASS</button>
-
-        <div class="comment-box">
-            <div style="font-size:0.8rem; font-weight:700; margin-bottom:10px;">💬 Global Feedback (Live)</div>
-            <div id="comment-list">
-                <div class="comment-item"><span class="comment-user">Ag**_Ganteng:</span> "Asli tembus di kosan sebelah wkwk"</div>
-                <div class="comment-item"><span class="comment-user">Si***_Cantik:</span> "Lumayan hemat kuota bulan ini."</div>
-                <div class="comment-item"><span class="comment-user">Ri**_Slayer:</span> "Hampir ga percaya tapi work."</div>
-            </div>
-        </div>
-    </div>
-
-    <div id="view-load" class="content hidden loader-box">
-        <div class="loader"></div>
-        <div id="load-text" style="font-weight:600;">Menginisialisasi...</div>
-        <div id="log-text" style="font-size:0.7rem; color:#94a3b8; margin-top:10px; font-family:monospace;">Menghubungkan ke port...</div>
-    </div>
-
-    <div id="view-prank" class="content hidden" style="text-align:center;">
-        <span style="font-size:4rem;">🤔</span>
-        <div class="savage-text" id="savage-msg"></div>
-        <p style="font-size: 0.85rem; color: #64748b; line-height: 1.6;" id="sub-savage"></p>
-        <button class="btn-main" style="margin-top:20px; background:#64748b;" onclick="location.reload()">COBA LAGI</button>
-    </div>
+<div class="box">
+  <h2>Free WiFi Access</h2>
+  <p>Masukkan password untuk terhubung</p>
+  <input type="password" placeholder="WiFi Password">
+  <br>
+  <button onclick="fakeLogin()">Connect</button>
 </div>
 
 <script>
-    // Fungsi sensor nama: Huruf pertama + sensor + huruf terakhir
-    function sensorName(name) {
-        if (name.length <= 3) return name[0] + "**";
-        let start = name.substring(0, 2);
-        let end = name.substring(name.length - 2);
-        return start + "***" + end;
-    }
-
-    const savageMessages = [
-        { main: "DETEKSI MANUSIA GABUT!", sub: "Sistem mendeteksi kamu adalah orang yang berharap dapet WiFi gratisan karena males beli kuota. Mending kerja jink!" },
-        { main: "MAU NYOLONG YA?", sub: "Deteksi server: User mencoba membobol properti orang lain secara ilegal. Dasar pengangguran, beli pulsa sana!" },
-        { main: "WIFI TETANGGA JANGAN DI-MALING!", sub: "Kasihan tetangganya bayar tiap bulan, eh kamu malah mau nebeng gratis lewat web ginian. Tobat oy!" },
-        { main: "DETEKSI BOCIL KEMATIAN!", sub: "Cuma bocil yang percaya ada web bisa jebol WiFi cuma sekali klik. Balik belajar matematika sana!" }
-    ];
-
-    function runFeature(title, msg) {
-        const btn = event.currentTarget;
-        btn.style.borderColor = "#4f46e5";
-        alert(`[${title}]\n${msg}\n\nStatus: Berhasil diaktifkan.`);
-    }
-
-    function startProcess() {
-        const name = document.getElementById('targetName').value;
-        if(!name || name.length < 2) return alert("Isi nama WiFi target dulu!");
-
-        document.getElementById('view-main').classList.add('hidden');
-        document.getElementById('view-load').classList.remove('hidden');
-
-        let i = 0;
-        const logs = ["Capturing packets...", "Sniffing SSID...", "Bypassing Firewall...", "Analyzing Handshake...", "Finalizing Access..."];
-        const logInt = setInterval(() => {
-            document.getElementById('log-text').innerText = logs[i];
-            i++;
-            if(i >= logs.length) clearInterval(logInt);
-        }, 800);
-
-        setTimeout(() => {
-            const randomMsg = savageMessages[Math.floor(Math.random() * savageMessages.length)];
-            document.getElementById('view-load').classList.add('hidden');
-            document.getElementById('view-prank').classList.remove('hidden');
-            document.getElementById('savage-msg').innerText = randomMsg.main;
-            document.getElementById('sub-savage').innerText = randomMsg.sub;
-        }, 4500);
-    }
-
-    // Bot Komentar Live dengan Sensor Otomatis
-    setInterval(() => {
-        const rawNames = ["Rizky_Pratama", "Budi_Santoso", "Lina_Meliana", "Dika_Hacker", "Eka_Putra", "Sari_Indah", "Doni_Pro", "Yuliana_99"];
-        const texts = ["Anjay beneran tembus!", "Keren banget tools-nya.", "Wifi sekolah lewat pake ini wkwk", "Admin pro banget parah.", "Work di area Bandung gan!"];
-        
-        const randomRawName = rawNames[Math.floor(Math.random() * rawNames.length)];
-        const censored = sensorName(randomRawName);
-        const randomText = texts[Math.floor(Math.random() * texts.length)];
-        
-        const newItem = document.createElement('div');
-        newItem.className = 'comment-item';
-        newItem.innerHTML = `<span class="comment-user">${censored}:</span> "${randomText}"`;
-        
-        const list = document.getElementById('comment-list');
-        list.prepend(newItem);
-        if(list.children.length > 5) list.lastElementChild.remove();
-    }, 4000);
+function fakeLogin() {
+  alert("Password salah. Silakan coba lagi.");
+}
 </script>
 
 </body>
